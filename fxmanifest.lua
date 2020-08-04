@@ -2,14 +2,8 @@ fx_version 'adamant'
 
 game 'gta5'
 
-description 'Eden Weapon Accesories'
+description 'Eden Weapon Accesories by lrenex edit'
 
-server_scripts {
-	'config.lua',
-	'server/main.lua',
-}
+server_script 'server/main.lua'
 
-client_scripts {
-	'config.lua',
-	'client/main.lua'
-}
+client_script 'client/main.lua'

@@ -1,406 +1,124 @@
 ESX = nil
-local IsDead = false
-
-Citizen.CreateThread(function()
-	while ESX == nil do
-		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-		Citizen.Wait(0)
-	end
-end)
-
-RegisterNetEvent('esx:playerLoaded')
-AddEventHandler('esx:playerLoaded', function(xPlayer)
-  PlayerData = xPlayer 
-end)
-
 local used = 0
 
-RegisterNetEvent('eden_accesories:silencieux')
-AddEventHandler('eden_accesories:silencieux', function(duration)
-	local inventory = ESX.GetPlayerData().inventory
-	local silencieux = 0
+local silencieuxlist = {
+    {weapon = 'WEAPON_PISTOL', compent = 'component_at_pi_supp_02'},
+    {weapon = 'WEAPON_PISTOL50', compent = 'COMPONENT_AT_AR_SUPP_02'},
+    {weapon = 'WEAPON_COMBATPISTOL', compent = 'COMPONENT_AT_PI_SUPP'},
+    {weapon = 'WEAPON_APPISTOL', compent = 'COMPONENT_AT_PI_SUPP'},
+    {weapon = 'WEAPON_HEAVYPISTOL', compent = 'COMPONENT_AT_PI_SUPP'},
+    {weapon = 'WEAPON_VINTAGEPISTOL', compent = 'COMPONENT_AT_PI_SUPP'},
+    {weapon = 'WEAPON_SMG', compent = 'COMPONENT_AT_PI_SUPP'},
+    {weapon = 'WEAPON_MICROSMG', compent = 'COMPONENT_AT_AR_SUPP_02'},
+    {weapon = 'WEAPON_ASSAULTSMG', compent = 'COMPONENT_AT_AR_SUPP_02'},
+    {weapon = 'WEAPON_ASSAULTRIFLE', compent = 'COMPONENT_AT_AR_SUPP_02'},
+    {weapon = 'WEAPON_CARBINERIFLE', compent = 'COMPONENT_AT_AR_SUPP'},
+    {weapon = 'WEAPON_ADVANCEDRIFLE', compent = 'COMPONENT_AT_AR_SUPP'},
+    {weapon = 'WEAPON_SPECIALCARBINE', compent = 'COMPONENT_AT_AR_SUPP_02'},
+    {weapon = 'WEAPON_BULLPUPRIFLE', compent = 'COMPONENT_AT_AR_SUPP'},
+    {weapon = 'WEAPON_ASSAULTSHOTGUN', compent = 'COMPONENT_AT_AR_SUPP'},
+    {weapon = 'WEAPON_HEAVYSHOTGUN', compent = 'COMPONENT_AT_AR_SUPP_02'},
+    {weapon = 'WEAPON_BULLPUPSHOTGUN', compent = 'COMPONENT_AT_AR_SUPP_02'},
+    {weapon = 'WEAPON_PUMPSHOTGUN', compent = 'COMPONENT_AT_SR_SUPP'},
+    {weapon = 'WEAPON_MARKSMANRIFLE', compent = 'COMPONENT_AT_AR_SUPP'},
+    {weapon = 'WEAPON_SNIPERRIFLE', compent = 'COMPONENT_AT_AR_SUPP_02'}
+}
 
-		for i=1, #inventory, 1 do
-		  if inventory[i].name == 'silencieux' then
-			silencieux = inventory[i].count
-		  end
-		end
+local flashlightlist = {
+    {weapon = 'WEAPON_PISTOL', compent = 'COMPONENT_AT_PI_FLSH'},
+    {weapon = 'WEAPON_PISTOL50', compent = 'COMPONENT_AT_PI_FLSH'},
+    {weapon = 'WEAPON_COMBATPISTOL', compent = 'COMPONENT_AT_PI_FLSH'},
+    {weapon = 'WEAPON_APPISTOL', compent = 'COMPONENT_AT_PI_FLSH'},
+    {weapon = 'WEAPON_HEAVYPISTOL', compent = 'COMPONENT_AT_PI_FLSH'},
+    {weapon = 'WEAPON_SMG', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_MICROSMG', compent = 'COMPONENT_AT_PI_FLSH'},
+    {weapon = 'WEAPON_ASSAULTSMG', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_COMBATPDW', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_ASSAULTRIFLE', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_CARBINERIFLE', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_ADVANCEDRIFLE', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_SPECIALCARBINE', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_BULLPUPRIFLE', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_ASSAULTSHOTGUN', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_HEAVYSHOTGUN', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_BULLPUPSHOTGUN', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_PUMPSHOTGUN', compent = 'COMPONENT_AT_AR_FLSH'},
+    {weapon = 'WEAPON_MARKSMANRIFLE', compent = 'COMPONENT_AT_AR_FLSH'}
+}
 
-local ped = PlayerPedId()
-local currentWeaponHash = GetSelectedPedWeapon(ped)
+local griplist = {
+    {weapon = 'WEAPON_COMBATPDW', compent = 'COMPONENT_AT_AR_AFGRIP'},
+    {weapon = 'WEAPON_ASSAULTRIFLE', compent = 'COMPONENT_AT_AR_AFGRIP'},
+    {weapon = 'WEAPON_CARBINERIFLE', compent = 'COMPONENT_AT_AR_AFGRIP'},
+    {weapon = 'WEAPON_SPECIALCARBINE', compent = 'COMPONENT_AT_AR_AFGRIP'},
+    {weapon = 'WEAPON_BULLPUPRIFLE', compent = 'COMPONENT_AT_AR_AFGRIP'},
+    {weapon = 'WEAPON_ASSAULTSHOTGUN', compent = 'COMPONENT_AT_AR_AFGRIP'},
+    {weapon = 'WEAPON_HEAVYSHOTGUN', compent = 'COMPONENT_AT_AR_AFGRIP'},
+    {weapon = 'WEAPON_BULLPUPSHOTGUN', compent = 'COMPONENT_AT_AR_AFGRIP'},
+    {weapon = 'WEAPON_MARKSMANRIFLE', compent = 'COMPONENT_AT_AR_AFGRIP'}
+}
 
-		if used < silencieux then
-			if currentWeaponHash == GetHashKey("WEAPON_PISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_PISTOL"), GetHashKey("component_at_pi_supp_02"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-		  		 	used = used + 1
+local yusuflist = {
+    {weapon = 'WEAPON_PISTOL', compent = 'COMPONENT_PISTOL_VARMOD_LUXE'},
+    {weapon = 'WEAPON_PISTOL50', compent = 'COMPONENT_PISTOL50_VARMOD_LUXE'},
+    {weapon = 'WEAPON_APPISTOL', compent = 'COMPONENT_APPISTOL_VARMOD_LUXE'},
+    {weapon = 'WEAPON_HEAVYPISTOL', compent = 'COMPONENT_HEAVYPISTOL_VARMOD_LUXE'},
+    {weapon = 'WEAPON_SMG', compent = 'COMPONENT_SMG_VARMOD_LUXE'},
+    {weapon = 'WEAPON_MICROSMG', compent = 'COMPONENT_MICROSMG_VARMOD_LUXE'},
+    {weapon = 'WEAPON_ASSAULTRIFLE', compent = 'COMPONENT_ASSAULTRIFLE_VARMOD_LUXE'},
+    {weapon = 'WEAPON_CARBINERIFLE', compent = 'COMPONENT_CARBINERIFLE_VARMOD_LUXE'},
+    {weapon = 'WEAPON_ADVANCEDRIFLE', compent = 'COMPONENT_ADVANCEDRIFLE_VARMOD_LUXE'}
+}
 
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_PISTOL50") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_PISTOL50"), GetHashKey("COMPONENT_AT_AR_SUPP_02"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-		  			used = used + 1
-
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_COMBATPISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_COMBATPISTOL"), GetHashKey("COMPONENT_AT_PI_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-					used = used + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_APPISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_APPISTOL"), GetHashKey("COMPONENT_AT_PI_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-		  		 	used = used + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_HEAVYPISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_HEAVYPISTOL"), GetHashKey("COMPONENT_AT_PI_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-		  			used = used + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_VINTAGEPISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_VINTAGEPISTOL"), GetHashKey("COMPONENT_AT_PI_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville."))
-		  		  	used = used + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_SMG") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_SMG"), GetHashKey("COMPONENT_AT_PI_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-		  		 	used = used + 1
-
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_MICROSMG") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_MICROSMG"), GetHashKey("COMPONENT_AT_AR_SUPP_02"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-				
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ASSAULTSMG") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ASSAULTSMG"), GetHashKey("COMPONENT_AT_AR_SUPP_02"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-		  		
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ASSAULTRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ASSAULTRIFLE"), GetHashKey("COMPONENT_AT_AR_SUPP_02"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_CARBINERIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_CARBINERIFLE"), GetHashKey("COMPONENT_AT_AR_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ADVANCEDRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ADVANCEDRIFLE"), GetHashKey("COMPONENT_AT_AR_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_SPECIALCARBINE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_SPECIALCARBINE"), GetHashKey("COMPONENT_AT_AR_SUPP_02"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_BULLPUPRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_BULLPUPRIFLE"), GetHashKey("COMPONENT_AT_AR_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ASSAULTSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ASSAULTSHOTGUN"), GetHashKey("COMPONENT_AT_AR_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_HEAVYSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_HEAVYSHOTGUN"), GetHashKey("COMPONENT_AT_AR_SUPP_02"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_BULLPUPSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_BULLPUPSHOTGUN"), GetHashKey("COMPONENT_AT_AR_SUPP_02"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-		  		 
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_PUMPSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_PUMPSHOTGUN"), GetHashKey("COMPONENT_AT_SR_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_MARKSMANRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_MARKSMANRIFLE"), GetHashKey("COMPONENT_AT_AR_SUPP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_SNIPERRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_SNIPERRIFLE"), GetHashKey("COMPONENT_AT_AR_SUPP_02"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un silencieux. Il faudra le rééquiper a chaques retours en ville.")) 
-	used = used + 1
-
-		  	else 
-		  		  ESX.ShowNotification(("Vous n'avez pas d'arme en main ou votre arme ne peux pas supporter de silencieux."))	
-			end
-			else
-					  		 ESX.ShowNotification(("Vous avez utiliser tout vos silencieux.")) 
-		end
-end)
-				local used2 = 0
-
-RegisterNetEvent('eden_accesories:flashlight')
-AddEventHandler('eden_accesories:flashlight', function(duration)
-					local inventory = ESX.GetPlayerData().inventory
-				local flashlight = 0
-					for i=1, #inventory, 1 do
-					  if inventory[i].name == 'flashlight' then
-						flashlight = inventory[i].count
-					  end
-					end
-
-local ped = PlayerPedId()
-local currentWeaponHash = GetSelectedPedWeapon(ped)
-
-		if used2 < flashlight then
-			if currentWeaponHash == GetHashKey("WEAPON_PISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_PISTOL"), GetHashKey("COMPONENT_AT_PI_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-		  		 	used2 = used2 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_PISTOL50") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_PISTOL50"), GetHashKey("COMPONENT_AT_PI_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_COMBATPISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_COMBATPISTOL"), GetHashKey("COMPONENT_AT_PI_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_APPISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_APPISTOL"), GetHashKey("COMPONENT_AT_PI_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_HEAVYPISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_HEAVYPISTOL"), GetHashKey("COMPONENT_AT_PI_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_SMG") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_SMG"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-		  		 	used2 = used2 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_MICROSMG") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_MICROSMG"), GetHashKey("COMPONENT_AT_PI_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ASSAULTSMG") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ASSAULTSMG"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
- 
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_COMBATPDW") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_COMBATPDW"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1	
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ASSAULTRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ASSAULTRIFLE"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_CARBINERIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_CARBINERIFLE"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ADVANCEDRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ADVANCEDRIFLE"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_SPECIALCARBINE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_SPECIALCARBINE"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_BULLPUPRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_BULLPUPRIFLE"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ASSAULTSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ASSAULTSHOTGUN"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_HEAVYSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_HEAVYSHOTGUN"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_BULLPUPSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_BULLPUPSHOTGUN"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-		  		 
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_PUMPSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_PUMPSHOTGUN"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_MARKSMANRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_MARKSMANRIFLE"), GetHashKey("COMPONENT_AT_AR_FLSH"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'un lampe. Il faudra le rééquiper a chaques retours en ville.")) 
-	used2 = used2 + 1
-
-		  	else 
-		  		  ESX.ShowNotification(("Vous n'avez pas d'arme en main ou votre arme ne peux pas supporter de lampe."))
-			end
-		else
-				  ESX.ShowNotification(("Vous avez utiliser toutes vos lampes."))
-		end
-end)
-
-local used3 = 0
-
-RegisterNetEvent('eden_accesories:grip')
-AddEventHandler('eden_accesories:grip', function(duration)
-	local inventory = ESX.GetPlayerData().inventory
-	local grip = 0
-		for i=1, #inventory, 1 do
-		  if inventory[i].name == 'grip' then
-			grip = inventory[i].count
-		  end
-		end
-
-local ped = PlayerPedId()
-local currentWeaponHash = GetSelectedPedWeapon(ped)
-
-		if used3 < grip then
-			if currentWeaponHash == GetHashKey("WEAPON_COMBATPDW") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_COMBATPDW"), GetHashKey("COMPONENT_AT_AR_AFGRIP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'une poignée. Il faudra le rééquiper a chaques retours en ville.")) 
-		  				used3 = used3 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ASSAULTRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ASSAULTRIFLE"), GetHashKey("COMPONENT_AT_AR_AFGRIP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'une poignée. Il faudra le rééquiper a chaques retours en ville.")) 
-	used3 = used3 + 1
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_CARBINERIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_CARBINERIFLE"), GetHashKey("COMPONENT_AT_AR_AFGRIP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'une poignée. Il faudra le rééquiper a chaques retours en ville.")) 
-	used3 = used3 + 1	
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_SPECIALCARBINE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_SPECIALCARBINE"), GetHashKey("COMPONENT_AT_AR_AFGRIP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'une poignée. Il faudra le rééquiper a chaques retours en ville.")) 
-	used3 = used3 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_BULLPUPRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_BULLPUPRIFLE"), GetHashKey("COMPONENT_AT_AR_AFGRIP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'une poignée. Il faudra le rééquiper a chaques retours en ville.")) 
-	used3 = used3 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ASSAULTSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ASSAULTSHOTGUN"), GetHashKey("COMPONENT_AT_AR_AFGRIP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'une poignée. Il faudra le rééquiper a chaques retours en ville.")) 
-	used3 = used3 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_HEAVYSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_HEAVYSHOTGUN"), GetHashKey("COMPONENT_AT_AR_AFGRIP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'une poignée. Il faudra le rééquiper a chaques retours en ville.")) 
-	used3 = used3 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_BULLPUPSHOTGUN") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_BULLPUPSHOTGUN"), GetHashKey("COMPONENT_AT_AR_AFGRIP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'une poignée. Il faudra le rééquiper a chaques retours en ville.")) 
-	used3 = used3 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_MARKSMANRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_MARKSMANRIFLE"), GetHashKey("COMPONENT_AT_AR_AFGRIP"))  
-		  		 ESX.ShowNotification(("Vous venez de vous équiper d'une poignée. Il faudra le rééquiper a chaques retours en ville.")) 
-	used3 = used3 + 1
-
-		  	else 
-		  		  ESX.ShowNotification(("Vous n'avez pas d'arme en main ou votre arme ne peux pas supporter de poignée."))
-
-			end
-		else
-				  ESX.ShowNotification(("Vous avez utiliser toutes vos poignées."))
-		end
-end)
-
-local used4 = 0
-
-RegisterNetEvent('eden_accesories:yusuf')
-AddEventHandler('eden_accesories:yusuf', function(duration)
-	local inventory = ESX.GetPlayerData().inventory
-	local yusuf = 0
-		for i=1, #inventory, 1 do
-		  if inventory[i].name == 'yusuf' then
-			yusuf = inventory[i].count
-		  end
-		end
-		
-local ped = PlayerPedId()
-local currentWeaponHash = GetSelectedPedWeapon(ped)
-
-		if used4 < yusuf then
-			if currentWeaponHash == GetHashKey("WEAPON_PISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_PISTOL"), GetHashKey("COMPONENT_PISTOL_VARMOD_LUXE"))  
-		  		 ESX.ShowNotification(("Vous venez d'équiper votre arme skin. Il faudra le rééquiper a chaques retours en ville.")) 
-		  		 	used4 = used4 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_PISTOL50") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_PISTOL50"), GetHashKey("COMPONENT_PISTOL50_VARMOD_LUXE"))  
-		  		 ESX.ShowNotification(("Vous venez d'équiper votre arme skin. Il faudra le rééquiper a chaques retours en ville.")) 
-	used4 = used4 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_APPISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_APPISTOL"), GetHashKey("COMPONENT_APPISTOL_VARMOD_LUXE"))  
-		  		 ESX.ShowNotification(("Vous venez d'équiper votre arme skin. Il faudra le rééquiper a chaques retours en ville.")) 
-	used4 = used4 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_HEAVYPISTOL") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_HEAVYPISTOL"), GetHashKey("COMPONENT_HEAVYPISTOL_VARMOD_LUXE"))  
-		  		 ESX.ShowNotification(("Vous venez d'équiper votre arme skin. Il faudra le rééquiper a chaques retours en ville.")) 
-	used4 = used4 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_SMG") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_SMG"), GetHashKey("COMPONENT_SMG_VARMOD_LUXE"))  
-		  		 ESX.ShowNotification(("Vous venez d'équiper votre arme skin. Il faudra le rééquiper a chaques retours en ville.")) 
-	used4 = used4 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_MICROSMG") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_MICROSMG"), GetHashKey("COMPONENT_MICROSMG_VARMOD_LUXE"))  
-		  		 ESX.ShowNotification(("Vous venez d'équiper votre arme skin. Il faudra le rééquiper a chaques retours en ville.")) 
-	used4 = used4 + 1
-
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ASSAULTRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ASSAULTRIFLE"), GetHashKey("COMPONENT_ASSAULTRIFLE_VARMOD_LUXE"))  
-		  		 ESX.ShowNotification(("Vous venez d'équiper votre arme skin. Il faudra le rééquiper a chaques retours en ville.")) 
-	used4 = used4 + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_CARBINERIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_CARBINERIFLE"), GetHashKey("COMPONENT_CARBINERIFLE_VARMOD_LUXE"))  
-		  		 ESX.ShowNotification(("Vous venez d'équiper votre arme skin. Il faudra le rééquiper a chaques retours en ville.")) 
-	used4 = used4 + 1
-		  		
-		  	elseif currentWeaponHash == GetHashKey("WEAPON_ADVANCEDRIFLE") then
-		  		 GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey("WEAPON_ADVANCEDRIFLE"), GetHashKey("COMPONENT_ADVANCEDRIFLE_VARMOD_LUXE"))  
-		  		 ESX.ShowNotification(("Vous venez d'équiper votre arme skin. Il faudra le rééquiper a chaques retours en ville.")) 
-	used4 = used4 + 1
-
-		  	else 
-		  		  ESX.ShowNotification(("Vous n'avez pas d'arme en main ou votre arme ne peux pas supporter de look de luxe."))
-			end
-		else
-				  ESX.ShowNotification(("Vous avez utiliser tout vos skins de luxe."))
-		end
+Citizen.CreateThread(function()
+    while ESX == nil do
+        TriggerEvent('esx:getSharedObject', function(obj)ESX = obj end)
+        Citizen.Wait(0)
+    end
 end)
 
 AddEventHandler('playerSpawned', function()
-  used = 0
-  used2 = 0
-  used3 = 0
-  used4 = 0
+    used = 0
+end)
+
+RegisterNetEvent('eden_accesories:registerAccesories')
+AddEventHandler('eden_accesories:registerAccesories', function(duration)
+    if duration ~= 'silencieux' and duration ~= 'flashlight' and duration ~= 'grip' and duration ~= 'yusuf' then
+        return
+    end
+    
+    local forhash = 'silencieuxlist'
+    
+    if duration == 'flashlight' then
+        forhash = 'flashlightlist'
+    elseif duration == 'grip' then
+        forhash = 'griplist'
+    elseif duration == 'yusuf' then
+        forhash = 'yusuflist'
+    end
+    
+    
+    local currentWeaponHash = GetSelectedPedWeapon(PlayerPedId())
+    local ped = GetPlayerPed(-1)
+    
+    for k, v in pairs(forhash) do
+        if currentWeaponHash == GetHashKey(v.weapon) then
+            if HasPedGotWeaponComponent(ped, GetHashKey(v.weapon), GetHashKey(v.compent)) then
+                used = 1
+                break
+            end
+            used = 2
+            GiveWeaponComponentToPed(GetPlayerPed(-1), GetHashKey(v.weapon), GetHashKey(v.compent))
+            ESX.ShowNotification(("裝備穿戴成功，如果角色重生或登入切記請重新穿戴！"))
+            break
+        end
+    end
+    
+    if used == 1 then
+        ESX.ShowNotification(("該武器已經有裝備此配件。"))
+    elseif used == 0 then
+        ESX.ShowNotification(("目前該武器沒有適合的配件可以裝備。"))
+    end
+    
+    used = 0
 end)
